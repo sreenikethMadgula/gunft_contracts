@@ -1,7 +1,10 @@
+
+
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
@@ -9,7 +12,7 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 import "./Marketplace.sol";
 // import "Gun.sol";
 
-contract GuNFT is ERC721, ERC721Enumerable, Ownable {
+contract GuNFT is ERC721, ERC721Enumerable, Ownable, ERC721URIStorage {
 
     // CONSTANTS
 
@@ -30,16 +33,18 @@ contract GuNFT is ERC721, ERC721Enumerable, Ownable {
         // gunContract = new Gun(address(this));
     }
 
-    function setBaseURI(string memory _baseURI) public onlyOwner {
-        baseURI=_baseURI;
+    
+
+    function _burn(uint256 tokenId) internal virtual override(ERC721,ERC721URIStorage) {
+        super._burn(tokenId);
     }
 
-    function _baseURI() internal view override returns (string memory) {
-        return baseURI;
+    function tokenURI(uint256 tokenId) public view virtual override(ERC721,ERC721URIStorage) returns (string memory) {
+        super.tokenURI(tokenId);
     }
 
     // function safeMint(address to, Gun.GunSetup memory _gunSetup) public payable {
-    function safeMint(address to) public payable {
+    function safeMint(address to, string memory _tokenURI) public payable {
         require(totalSupply() < MAX_SUPPLY, "Cannot mint more NFTs");
         require(msg.value >= mintCost, "Minimum 0.001 ether required to mint");
         uint256 tokenId = _tokenIdCounter.current();
@@ -47,6 +52,7 @@ contract GuNFT is ERC721, ERC721Enumerable, Ownable {
         // gunContract.addSetup(_gunSetup, tokenId);
         _tokenIdCounter.increment();
         _safeMint(to, tokenId);
+        _setTokenURI(tokenId, _tokenURI);
     }
 
     // The following functions are overrides required by Solidity.
